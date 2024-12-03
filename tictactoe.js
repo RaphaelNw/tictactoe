@@ -197,4 +197,4 @@ function Gameboard() {
   game.playRound(1, 1); // Player Two
   game.playRound(0, 1); // Player One
   game.playRound(2, 2); // Player Two
-  game.playRound(0, 2); // Player One (winning move) */
+  game.playRound(0, 2); // Player One - winning move */
