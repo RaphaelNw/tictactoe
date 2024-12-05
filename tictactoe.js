@@ -180,21 +180,99 @@ function Gameboard() {
       switchPlayerTurn();
       printNewRound();
     };
-  
+    
     // Initial play game message
-    printNewRound();
+   /* printNewRound();*/
   
     return {
       playRound,
       getActivePlayer,
+      getBoard: board.getBoard,
+      checkWinner,
+      isTie,
     };
   }
   
-  const game = GameController();
-  /*
-  // Example of playing a game in the console
-  game.playRound(0, 0); // Player One
-  game.playRound(1, 1); // Player Two
-  game.playRound(0, 1); // Player One
-  game.playRound(2, 2); // Player Two
-  game.playRound(0, 2); // Player One - winning move */
+  function ScreenController() {
+    let game;
+    const playerOneInput = document.querySelector("#player-one-name");
+    const playerTwoInput = document.querySelector("#player-two-name");
+    const startButton = document.querySelector("#start-button");
+    const playerTurnDiv = document.querySelector('.turn');
+    const boardDiv = document.querySelector('.board');
+    const resultsDiv = document.querySelector('.results'); // Select the results div
+  
+    const updateScreen = () => {
+      // Clear the board
+      boardDiv.textContent = "";
+  
+      // Get the newest version of the board and active player
+      const board = game.getBoard().map(row => row.map(cell => cell.getValue()));
+      const activePlayer = game.getActivePlayer();
+  
+      // Display player's turn
+      playerTurnDiv.textContent = `${activePlayer.name}'s turn...`;
+  
+      // Render board squares
+      board.forEach((row, rowIndex) => {
+        const rowDiv = document.createElement("div");
+        rowDiv.classList.add("row");
+        row.forEach((cellValue, colIndex) => {
+          const cellButton = document.createElement("button");
+          cellButton.classList.add("cell");
+          cellButton.textContent = cellValue === 0 ? "" : cellValue; // Display empty if value is 0
+          cellButton.dataset.row = rowIndex; // Add row data attribute
+          cellButton.dataset.column = colIndex; // Add column data attribute
+          rowDiv.appendChild(cellButton);
+        });
+        boardDiv.appendChild(rowDiv);
+      });
+    };
+  
+    // Add event listener for the board
+    function clickHandlerBoard(e) {
+      const cellButton = e.target;
+      const selectedRow = cellButton.dataset.row;
+      const selectedColumn = cellButton.dataset.column;
+  
+      // Make sure I've clicked a valid cell
+      if (selectedRow === undefined || selectedColumn === undefined) return;
+  
+      // Convert data attributes to numbers
+      const row = parseInt(selectedRow, 10);
+      const column = parseInt(selectedColumn, 10);
+  
+      // Play the round
+      game.playRound(row, column);
+      updateScreen();
+  
+      // Check for a winner or tie after the round
+      const winner = game.checkWinner(); // Use the checkWinner method from GameController
+      const isTie = game.isTie(); // Use the isTie method from GameController
+      if (winner) {
+        resultsDiv.textContent = `🎉 ${game.getActivePlayer().name} wins with '${winner}'! 🎉`;
+        boardDiv.removeEventListener("click", clickHandlerBoard); // Disable further clicks
+      } else if (isTie) {
+        resultsDiv.textContent = "It's a tie!";
+        boardDiv.removeEventListener("click", clickHandlerBoard); // Disable further clicks
+      } else {
+        // Update the screen for the next turn
+        updateScreen();
+      }
+    }
+    const startGame = () => {
+        const playerOneName = playerOneInput.value || "Player One";
+        const playerTwoName = playerTwoInput.value || "Player Two";
+    
+        game = GameController(playerOneName, playerTwoName);
+        resultsDiv.textContent = "";
+        boardDiv.addEventListener("click", clickHandlerBoard);
+        // Initial render
+        updateScreen();
+    };
+
+    startButton.addEventListener("click", startGame);
+  }
+  
+  
+  ScreenController();
